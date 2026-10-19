@@ -24,3 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Movies-test"
 include(":app")
+include(":sdk")
