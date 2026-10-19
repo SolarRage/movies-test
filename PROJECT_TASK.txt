@@ -1,0 +1,157 @@
+JEDYAPPS ANDROID HOME ASSIGNMENT - PROJECT TASK
+
+Purpose
+Build a readable Android movie-search application and publish the source code in a public GitHub repository. Kotlin and Jetpack Compose are the preferred choices for this project. Third-party libraries may be used.
+
+Current project review
+- The repository contains a Jetpack Compose application with :app and :sdk modules.
+- Debounced paginated OMDb search, separate details loading, Room favorites, and Compose navigation are implemented.
+- Koin provides dependency injection for repositories, database, networking, ViewModels, and the ads facade.
+- The :sdk module hides AdMob types and owns native/interstitial ad lifecycle and policy.
+- The initial AndroidX version mismatch has been resolved. The project now uses dependency versions compatible with compile SDK 36.1 and Android Gradle Plugin 9.0.1.
+- ./gradlew test assembleDebug assembleDebugAndroidTest completes successfully.
+- Unit, integration, Room, and Compose tests cover the critical policies and data paths.
+- The initial project commit is followed by focused build, networking, persistence, SDK, UI, and integration commits.
+
+Assignment goals
+
+1. Movie search
+- Add a search input to the main screen.
+- Search movies by keyword through the OMDb web API.
+- Reference request: https://www.omdbapi.com/?apikey=<API_KEY>&s=<SEARCH_TERM>
+- Display search results in a scrollable list using LazyColumn or RecyclerView.
+- Show clear loading, empty-result, and error states.
+- Do not commit a real API key. Read it from a local, ignored configuration value and expose it to the app through BuildConfig or another safe build-time mechanism.
+
+2. Movie details
+- Make every movie result selectable.
+- Open a details screen when a result is selected.
+- Display at least the movie title and poster.
+- Display the movie type when it is available.
+
+3. Favorites
+- Allow a movie to be added to and removed from Favorites.
+- Provide an accessible Favorites list in the app.
+- Persist favorites locally so they survive process death and app restarts.
+- Room is the recommended persistence solution.
+
+4. Advertising SDK module
+- Create a separate Gradle module named :sdk.
+- Keep all ad-related implementation and state inside this module.
+- Expose a small API that the :app module can use without depending directly on provider-specific details.
+- Implement Google AdMob interstitial ads.
+- Implement Google AdMob native ads.
+- Design an ad-provider interface or equivalent abstraction so another provider can be added later without rewriting the app UI.
+- Use Google test ad unit IDs during development and automated testing. Do not commit private production identifiers or secrets.
+
+5. Native-ad placement
+- Mix native ads into the main search-result list at indexes 1 and 3.
+- Add only positions that are valid for the available result count; do not crash on short lists.
+- The assignment wording is ambiguous because zero-based index 3 needs at least four items, while it mentions at least three results. Document the chosen interpretation in the README and cover the placement logic with unit tests.
+- Use separate UI models for movie rows and ad rows so list rendering remains type-safe and testable.
+
+6. Interstitial behavior
+- Show an interstitial ad only when the user returns to the app for the second time.
+- Define "returns to the app" consistently as a foreground session or launch, document that decision, and persist the counter so rotation and process recreation do not trigger the ad incorrectly.
+- Do not show the interstitial repeatedly after the second qualifying return unless the requirement is clarified.
+
+7. Code quality and delivery
+- Keep packages, class names, and responsibilities easy to understand.
+- Separate UI, domain/state, data, database, network, and advertising responsibilities.
+- Handle API and image failures without crashing.
+- Add meaningful unit tests for search mapping/state, favorite persistence behavior, ad insertion positions, and second-return logic.
+- Add UI or instrumentation tests for the main user flows where practical.
+- Add a README with setup instructions, API-key configuration, architecture notes, assumptions, screenshots, and build/test commands.
+- Publish the finished source in a public GitHub repository.
+
+Suggested implementation plan
+
+Phase 1 - Repair and configure the build
+- DONE: Resolved the AGP / compile SDK / AndroidX version mismatch.
+- DONE: Selected compatible AndroidX versions for AGP 9.0.1 and API 36.1.
+- DONE: Verified ./gradlew test and ./gradlew assembleDebug.
+
+Phase 2 - Project foundations
+- DONE: Added coroutines, lifecycle ViewModel, navigation, Retrofit/OkHttp, image loading, Room, Koin, and testing dependencies.
+- DONE: Added INTERNET permission and local OMDb API-key configuration.
+- DONE: Created data/domain models, API service, paging source, repositories, and screen state models.
+
+Phase 3 - Core user experience
+- DONE: Implemented debounced paginated movie search and all primary load states.
+- DONE: Implemented details navigation and separate details loading by IMDb ID.
+- DONE: Implemented Room favorites and a Favorites screen sorted newest first.
+
+Phase 4 - SDK module and ads
+- DONE: Added :sdk and made :app depend on it.
+- DONE: Added Mobile Ads with official test identifiers and isolated provider-specific types.
+- DONE: Implemented provider abstraction, SDK-owned Compose native ad, and interstitial lifecycle.
+- DONE: Inserted native ads at final zero-based indexes 1 and 3 when those positions are available.
+- DONE: Persisted and tested the one-time second-foreground interstitial rule.
+
+Phase 5 - Quality and submission
+- DONE: Added assignment-specific unit, integration, Room, and Compose tests.
+- DONE: Verified unit tests, debug build, and instrumentation-test compilation.
+- DONE: Covered OMDb errors, short result lists, native positions, and interstitial policy.
+- DONE: Added README setup and architecture documentation.
+- DONE: Completed emulator QA for search, details, favorites, native ads, and second-foreground interstitial behavior.
+- DONE: Ran connected Room and Compose instrumentation tests.
+- DONE: Completed the final working-tree and ignore review before staging.
+
+Definition of done
+- A user can search OMDb by keyword and see movie results.
+- A user can open a result and see its title, poster, and type when available.
+- A user can add/remove favorites and see them after restarting the app.
+- The separate :sdk module owns all AdMob logic.
+- Native ads appear at the required list positions without index errors.
+- The interstitial appears exactly on the documented second-return event.
+- All secrets and machine-specific files are excluded from Git.
+- The project builds successfully and meaningful automated tests pass.
+- The public GitHub repository includes clear setup and architecture documentation.
+
+Git commit review for the current repository
+
+Commit these current files
+- .gitignore
+- build.gradle.kts
+- settings.gradle.kts
+- gradle.properties
+- gradle/libs.versions.toml
+- gradle/wrapper/gradle-wrapper.properties
+- gradle/wrapper/gradle-wrapper.jar
+- gradlew
+- gradlew.bat
+- gradle/gradle-daemon-jvm.properties (commit it if Java 21 is the intentional shared Gradle JVM requirement)
+- app/.gitignore
+- app/build.gradle.kts
+- app/proguard-rules.pro
+- app/src/main/AndroidManifest.xml
+- app/src/main/java/**
+- app/src/main/res/**
+- app/schemas/**
+- app/src/test/**
+- app/src/androidTest/**
+- sdk/.gitignore
+- sdk/build.gradle.kts
+- sdk/consumer-rules.pro
+- sdk/src/**
+- README.md
+- PROJECT_TASK.txt
+
+Optional additions
+- Screenshots intended for the README, preferably under docs/
+
+Remove from the commit or keep ignored
+- local.properties: contains a machine-specific Android SDK path and may later contain local secrets.
+- .gradle/: generated Gradle caches and local state.
+- .idea/: Android Studio user/project metadata is not required to build the project. Ignore the entire directory unless the team intentionally shares a small reviewed subset such as code styles.
+- **/build/: generated build outputs.
+- captures/, .externalNativeBuild/, and .cxx/: generated tooling outputs.
+- API keys, signing keystores, signing passwords, production AdMob IDs, service-account files, and other credentials.
+- The original assignment DOCX: it is reference material outside this repository and is not needed to build or review the source.
+
+Final Git review completed
+- Root .gitignore excludes .idea/, local.properties, caches, and machine-specific files.
+- Module .gitignore files exclude app/build and sdk/build.
+- Generated placeholder tests were replaced by assignment-specific JVM and instrumentation tests.
+- The repository diff contains no local OMDb key.
+- The implementation files above are appropriate for the submission commit; generated outputs and local secrets remain excluded.
