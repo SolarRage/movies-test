@@ -1,19 +1,19 @@
 # Movies Test
 
-Android home-assignment app that searches the OMDb catalog, shows paginated results and details, stores favorites locally, and integrates native and interstitial test ads through an isolated SDK module.
+Android test assignment that searches the OMDb catalog, shows paginated results and movie details, stores favorites locally, and integrates native and interstitial test ads through a separate SDK module.
 
 ## Features
 
 - Debounced OMDb search with automatic paging.
-- Loading, empty, append-error, and retry states.
+- Loading, empty, error, and retry states.
 - Details loaded separately by IMDb ID.
 - Room-backed favorites sorted by newest first.
 - Search and Favorites tabs with Details on top of the navigation stack.
-- Native test ads at zero-based UI indexes 1 and 3.
-  - Fewer than three movies: no ads are inserted.
-  - Three or more movies: ads are placed at indexes 1 and 3.
+- Native test ads at zero-based UI indexes 1 and 3 when at least three movies are available.
+- Search results are displayed after both the movies and required native ads finish loading.
 - Interstitial test ad shown once per installation on the second process foreground session.
 - AdMob types and lifecycle contained inside the `:sdk` module.
+- MVVM with unidirectional data flow and repository abstractions.
 
 ## Project structure
 
@@ -43,7 +43,7 @@ sdk
     └── interstitial policy and persistence
 ```
 
-The module dependency direction is `:app -> :sdk`. The SDK never depends on app models or UI, and Google Mobile Ads types do not cross its public API.
+The module dependency direction is `:app -> :sdk`. The SDK does not depend on app models or UI, and Google Mobile Ads types do not cross its public API.
 
 ## Setup
 
@@ -72,14 +72,12 @@ The project uses Google's official demo identifiers only:
 - Interstitial: `ca-app-pub-3940256099942544/1033173712`
 - Sample application ID: `ca-app-pub-3940256099942544~3347511713`
 
-Do not publish a production build with these IDs. Replace them with project-owned identifiers and complete the required consent/privacy flow before release.
-
-The SDK observes `ProcessLifecycleOwner`, so navigation and configuration changes do not count as app returns. The initial launch counts as foreground session 1; the first re-entry is foreground session 2 and triggers the one-time interstitial. Its foreground counter and shown flag are stored in a dedicated SharedPreferences file. That file is excluded from cloud backup and device transfer.
+The SDK observes `ProcessLifecycleOwner`, so navigation and configuration changes do not count as app returns. The foreground counter and one-time shown flag are stored in `SharedPreferences`.
 
 ## Testing
 
-- JVM tests cover native-ad placement, OMDb paging/error mapping, Retrofit request/response integration, and the second-foreground interstitial policy.
-- Instrumentation tests cover Room ordering and concurrent toggles, delayed ad callbacks, interstitial foreground handling, and the core movie-card Compose UI.
+- JVM tests cover native-ad placement and lifecycle, the public ads API, OMDb paging/error mapping, Retrofit integration, concurrent favorite toggles, and the interstitial policy.
+- Instrumentation tests cover Room ordering, ads manager behavior, and the core movie-card Compose UI.
 - Real network calls and real ads are not used by automated tests.
 
 Compile all test APKs with:
@@ -97,7 +95,6 @@ Run instrumentation tests on an emulator or device with:
 ## Implementation notes
 
 - Search starts 500 ms after the latest text change; blank queries are not sent.
-- Search results are revealed only after the initial movie page and required native-ad slots finish loading; an ad failure does not block the movie list.
 - Paging uses OMDb's page parameter and its fixed page size of 10.
 - Missing poster values (`N/A`) are normalized to no image.
 - Favorites use IMDb ID as the primary key.
