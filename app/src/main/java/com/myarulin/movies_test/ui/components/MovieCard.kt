@@ -24,8 +24,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.myarulin.movies_test.R
 import com.myarulin.movies_test.domain.model.Movie
 
 @Composable
@@ -52,11 +54,11 @@ fun MovieCard(
                 contentAlignment = Alignment.Center,
             ) {
                 if (movie.posterUrl == null) {
-                    Text("No poster", style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.no_poster), style = MaterialTheme.typography.bodySmall)
                 } else {
                     AsyncImage(
                         model = movie.posterUrl,
-                        contentDescription = "Poster for ${movie.title}",
+                        contentDescription = stringResource(R.string.poster_for, movie.title),
                         modifier = Modifier.matchParentSize(),
                         contentScale = ContentScale.Crop,
                     )
@@ -77,7 +79,9 @@ fun MovieCard(
             IconButton(onClick = onFavoriteClick) {
                 Icon(
                     imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                    contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                    contentDescription = stringResource(
+                        if (isFavorite) R.string.remove_from_favorites else R.string.add_to_favorites,
+                    ),
                 )
             }
         }

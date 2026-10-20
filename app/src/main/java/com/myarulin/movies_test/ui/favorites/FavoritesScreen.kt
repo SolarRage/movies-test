@@ -8,8 +8,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.myarulin.movies_test.R
 import com.myarulin.movies_test.ui.components.MessageContent
 import com.myarulin.movies_test.ui.components.MovieCard
 
@@ -23,7 +25,7 @@ fun FavoritesScreen(
 
     if (favorites.isEmpty()) {
         MessageContent(
-            message = "Your favorite movies will appear here.",
+            message = stringResource(R.string.favorites_empty_message),
             modifier = modifier,
         )
         return

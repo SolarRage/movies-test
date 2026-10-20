@@ -24,6 +24,7 @@ class InterstitialPolicyTest {
 
         assertThat(policy.onForeground()).isFalse()
         assertThat(store.interstitialShown).isTrue()
+        assertThat(policy.canShowAgain).isFalse()
     }
 }
 

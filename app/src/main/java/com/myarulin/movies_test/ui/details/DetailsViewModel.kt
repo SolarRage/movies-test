@@ -6,6 +6,8 @@ import com.myarulin.movies_test.domain.model.Movie
 import com.myarulin.movies_test.domain.model.MovieDetails
 import com.myarulin.movies_test.domain.repository.FavoritesRepository
 import com.myarulin.movies_test.domain.repository.MovieRepository
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -31,6 +33,7 @@ class DetailsViewModel(
 
     val isFavorite: StateFlow<Boolean> = favoritesRepository.observeIsFavorite(imdbId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+    private var loadJob: Job? = null
 
     init {
         load()
@@ -46,13 +49,16 @@ class DetailsViewModel(
     }
 
     private fun load() {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _state.value = DetailsUiState.Loading
-            _state.value = runCatching { movieRepository.getDetails(imdbId) }
-                .fold(
-                    onSuccess = DetailsUiState::Content,
-                    onFailure = { DetailsUiState.Error(it.message ?: "Unable to load movie details.") },
-                )
+            _state.value = try {
+                DetailsUiState.Content(movieRepository.getDetails(imdbId))
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                DetailsUiState.Error(error.message ?: "Unable to load movie details.")
+            }
         }
     }
 }

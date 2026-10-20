@@ -21,11 +21,16 @@ import com.google.android.gms.ads.nativead.NativeAdOptions
 import com.google.android.gms.ads.nativead.NativeAdView
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.myarulin.movies_test.sdk.AdProvider
+import com.myarulin.movies_test.sdk.AdsConfig
+import com.myarulin.movies_test.sdk.NativeAdHandle
 import com.myarulin.movies_test.sdk.R
 
 internal class AdMobNativeAdHandle(val ad: NativeAd) : NativeAdHandle
 
-internal class AdMobProvider : AdProvider {
+internal class AdMobProvider(
+    private val config: AdsConfig,
+) : AdProvider {
     private var interstitialAd: InterstitialAd? = null
     private var interstitialLoading = false
     private var generation = 0L
@@ -39,7 +44,7 @@ internal class AdMobProvider : AdProvider {
         onLoaded: (NativeAdHandle) -> Unit,
         onFailed: (String) -> Unit,
     ) {
-        AdLoader.Builder(context, TEST_NATIVE_AD_UNIT_ID)
+        AdLoader.Builder(context, config.nativeUnitId)
             .forNativeAd { nativeAd -> onLoaded(AdMobNativeAdHandle(nativeAd)) }
             .withAdListener(object : AdListener() {
                 override fun onAdFailedToLoad(error: LoadAdError) {
@@ -129,7 +134,7 @@ internal class AdMobProvider : AdProvider {
         interstitialLoading = true
         InterstitialAd.load(
             context,
-            TEST_INTERSTITIAL_AD_UNIT_ID,
+            config.interstitialUnitId,
             AdRequest.Builder().build(),
             object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(ad: InterstitialAd) {
@@ -175,9 +180,4 @@ internal class AdMobProvider : AdProvider {
 
     private fun Int.dp(context: Context): Int =
         (this * context.resources.displayMetrics.density).toInt()
-
-    private companion object {
-        const val TEST_NATIVE_AD_UNIT_ID = "ca-app-pub-3940256099942544/2247696110"
-        const val TEST_INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"
-    }
 }

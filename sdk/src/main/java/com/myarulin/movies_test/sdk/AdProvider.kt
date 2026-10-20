@@ -1,12 +1,12 @@
-package com.myarulin.movies_test.sdk.internal
+package com.myarulin.movies_test.sdk
 
 import android.app.Activity
 import android.content.Context
 import android.view.View
 
-internal interface NativeAdHandle
+interface NativeAdHandle
 
-internal interface AdProvider {
+interface AdProvider {
     fun initialize(context: Context)
 
     fun loadNative(

@@ -5,20 +5,26 @@ import android.app.Application
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
+import com.myarulin.movies_test.sdk.AdProvider
 import com.myarulin.movies_test.sdk.AdsManager
+import com.myarulin.movies_test.sdk.NativeAdHandle
 import com.myarulin.movies_test.sdk.NativeAdsLoadState
 import java.lang.ref.WeakReference
 
@@ -70,7 +76,9 @@ internal class DefaultAdsManager(
         provider.initialize(application)
         application.registerActivityLifecycleCallbacks(this)
         processLifecycle.addObserver(this)
-        loadInterstitial(countAsEligibleAttempt = false)
+        if (policy?.canShowAgain == true) {
+            loadInterstitial(countAsEligibleAttempt = false)
+        }
     }
 
     override fun onStart(owner: LifecycleOwner) {
@@ -95,7 +103,7 @@ internal class DefaultAdsManager(
     }
 
     @Composable
-    override fun prepareNativeAds(slotIds: Set<String>): NativeAdsLoadState {
+    override fun prepareNativeAds(slotIds: Set<String>): Map<String, NativeAdsLoadState> {
         LaunchedEffect(slotIds) {
             slotIds.forEach(::loadNative)
         }
@@ -103,13 +111,20 @@ internal class DefaultAdsManager(
             onDispose { slotIds.forEach(::releaseNative) }
         }
 
-        return nativeAdsLoadState(slotIds)
+        return slotIds.associateWith(::nativeAdLoadState)
     }
 
     @Composable
     override fun NativeAd(slotId: String, modifier: Modifier) {
         when (val state = nativeSlots[slotId]) {
-            is NativeSlotState.Loading -> LinearProgressIndicator(modifier = modifier.fillMaxWidth())
+            is NativeSlotState.Loading -> Box(
+                contentAlignment = Alignment.Center,
+                modifier = modifier
+                    .fillMaxWidth()
+                    .height(NATIVE_AD_PLACEHOLDER_HEIGHT_DP.dp),
+            ) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            }
             is NativeSlotState.Loaded -> key(state.handle) {
                 AndroidView(
                     factory = { context -> provider.createNativeView(context, state.handle) },
@@ -120,13 +135,10 @@ internal class DefaultAdsManager(
         }
     }
 
-    internal fun nativeAdsLoadState(slotIds: Set<String>): NativeAdsLoadState = when {
-        slotIds.isEmpty() -> NativeAdsLoadState.Ready
-        slotIds.any { nativeSlots[it] == null || nativeSlots[it] is NativeSlotState.Loading } -> {
-            NativeAdsLoadState.Loading
-        }
-        slotIds.any { nativeSlots[it] is NativeSlotState.Failed } -> NativeAdsLoadState.Failed
-        else -> NativeAdsLoadState.Ready
+    internal fun nativeAdLoadState(slotId: String): NativeAdsLoadState = when (nativeSlots[slotId]) {
+        null, is NativeSlotState.Loading -> NativeAdsLoadState.Loading
+        is NativeSlotState.Loaded -> NativeAdsLoadState.Ready
+        NativeSlotState.Failed -> NativeAdsLoadState.Failed
     }
 
     override fun release() {
@@ -266,6 +278,7 @@ internal class DefaultAdsManager(
 
     private companion object {
         const val PREFERENCES_NAME = "movies_ads_sdk_state"
+        const val NATIVE_AD_PLACEHOLDER_HEIGHT_DP = 220
         const val MAX_ELIGIBLE_LOAD_ATTEMPTS = 3
         const val BASE_RETRY_DELAY_MS = 1_000L
     }

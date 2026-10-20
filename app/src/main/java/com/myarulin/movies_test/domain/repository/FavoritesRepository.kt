@@ -10,8 +10,6 @@ interface FavoritesRepository {
 
     fun observeIsFavorite(imdbId: String): Flow<Boolean>
 
-    suspend fun add(movie: Movie)
-
     suspend fun remove(imdbId: String)
 
     suspend fun toggle(movie: Movie)

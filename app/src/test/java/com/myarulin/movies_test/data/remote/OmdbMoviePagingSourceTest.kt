@@ -5,6 +5,7 @@ import com.google.common.truth.Truth.assertThat
 import com.myarulin.movies_test.data.remote.dto.MovieDetailsDto
 import com.myarulin.movies_test.data.remote.dto.MovieDto
 import com.myarulin.movies_test.data.remote.dto.SearchResponseDto
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -52,7 +53,49 @@ class OmdbMoviePagingSourceTest {
         assertThat(page.nextKey).isNull()
     }
 
-    private fun movieDto(id: String) = MovieDto(
+    @Test
+    fun `entries without an imdb id are ignored`() = runTest {
+        val api = FakeOmdbApi(
+            SearchResponseDto(
+                results = listOf(movieDto(null), movieDto("tt1")),
+                totalResults = "2",
+                response = "True",
+                error = null,
+            ),
+        )
+        val source = OmdbMoviePagingSource(api, "test-key", "movie")
+
+        val result = source.load(
+            PagingSource.LoadParams.Refresh(key = null, loadSize = 10, placeholdersEnabled = false),
+        ) as PagingSource.LoadResult.Page
+
+        assertThat(result.data.map { it.imdbId }).containsExactly("tt1")
+    }
+
+    @Test
+    fun `coroutine cancellation is rethrown`() = runTest {
+        val cancellation = CancellationException("cancel search")
+        val api = object : OmdbApi {
+            override suspend fun search(apiKey: String, query: String, page: Int): SearchResponseDto {
+                throw cancellation
+            }
+
+            override suspend fun details(apiKey: String, imdbId: String, plot: String) =
+                error("Not used")
+        }
+        val source = OmdbMoviePagingSource(api, "test-key", "movie")
+
+        try {
+            source.load(
+                PagingSource.LoadParams.Refresh(key = null, loadSize = 10, placeholdersEnabled = false),
+            )
+            throw AssertionError("Expected CancellationException")
+        } catch (error: CancellationException) {
+            assertThat(error).isSameInstanceAs(cancellation)
+        }
+    }
+
+    private fun movieDto(id: String?) = MovieDto(
         imdbId = id,
         title = "Movie",
         poster = "N/A",

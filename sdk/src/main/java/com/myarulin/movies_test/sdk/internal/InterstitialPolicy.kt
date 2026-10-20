@@ -8,6 +8,9 @@ internal interface InterstitialSessionStore {
 internal class InterstitialPolicy(
     private val store: InterstitialSessionStore,
 ) {
+    val canShowAgain: Boolean
+        get() = !store.interstitialShown
+
     fun onForeground(): Boolean {
         if (store.interstitialShown) return false
         store.foregroundCount += 1

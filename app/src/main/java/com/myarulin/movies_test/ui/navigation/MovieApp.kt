@@ -16,6 +16,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -23,6 +24,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.myarulin.movies_test.R
 import com.myarulin.movies_test.sdk.AdsManager
 import com.myarulin.movies_test.ui.details.DetailsScreen
 import com.myarulin.movies_test.ui.details.DetailsViewModel
@@ -53,16 +55,19 @@ fun MovieApp(modifier: Modifier = Modifier) {
                 title = {
                     Text(
                         when (currentRoute) {
-                            FAVORITES_ROUTE -> "Favorites"
-                            DETAILS_ROUTE -> "Movie details"
-                            else -> "Movie search"
+                            FAVORITES_ROUTE -> stringResource(R.string.title_favorites)
+                            DETAILS_ROUTE -> stringResource(R.string.title_details)
+                            else -> stringResource(R.string.title_search)
                         },
                     )
                 },
                 navigationIcon = {
                     if (!isTopLevel) {
                         IconButton(onClick = navController::navigateUp) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.navigation_back),
+                            )
                         }
                     }
                 },
@@ -81,7 +86,7 @@ fun MovieApp(modifier: Modifier = Modifier) {
                             }
                         },
                         icon = { Icon(Icons.Default.Search, contentDescription = null) },
-                        label = { Text("Search") },
+                        label = { Text(stringResource(R.string.navigation_search)) },
                     )
                     NavigationBarItem(
                         selected = currentRoute == FAVORITES_ROUTE,
@@ -93,7 +98,7 @@ fun MovieApp(modifier: Modifier = Modifier) {
                             }
                         },
                         icon = { Icon(Icons.Default.Favorite, contentDescription = null) },
-                        label = { Text("Favorites") },
+                        label = { Text(stringResource(R.string.navigation_favorites)) },
                     )
                 }
             }

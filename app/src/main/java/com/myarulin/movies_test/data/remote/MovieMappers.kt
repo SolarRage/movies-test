@@ -5,13 +5,16 @@ import com.myarulin.movies_test.data.remote.dto.MovieDto
 import com.myarulin.movies_test.domain.model.Movie
 import com.myarulin.movies_test.domain.model.MovieDetails
 
-internal fun MovieDto.toDomain() = Movie(
-    imdbId = imdbId,
-    title = title,
-    posterUrl = poster.takeUnless { it.isNullOrBlank() || it == "N/A" },
-    type = type.orEmpty().ifBlank { "Unknown" },
-    year = year.orEmpty(),
-)
+internal fun MovieDto.toDomain(): Movie? {
+    val id = imdbId?.takeIf(String::isNotBlank) ?: return null
+    return Movie(
+        imdbId = id,
+        title = title.orEmpty().ifBlank { "Untitled" },
+        posterUrl = poster.takeUnless { it.isNullOrBlank() || it == "N/A" },
+        type = type.orEmpty().ifBlank { "Unknown" },
+        year = year.orEmpty(),
+    )
+}
 
 internal fun MovieDetailsDto.toDomain(): MovieDetails {
     val id = imdbId ?: throw OmdbException("The details response does not contain an IMDb ID.")
