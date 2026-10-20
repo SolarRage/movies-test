@@ -10,20 +10,30 @@ class NativeAdPlacementTest {
     }
 
     @Test
-    fun `one movie adds native ad at index one`() {
-        assertThat(searchDisplayItemCount(1)).isEqualTo(2)
+    fun `one movie does not add native ads`() {
+        assertThat(searchDisplayItemCount(1)).isEqualTo(1)
         assertThat(searchRowAt(0, 1)).isEqualTo(SearchRow.MovieRow(0))
-        assertThat(searchRowAt(1, 1)).isEqualTo(SearchRow.NativeAdRow(1))
     }
 
     @Test
-    fun `two movies add native ads at indexes one and three`() {
+    fun `two movies do not add native ads`() {
         assertThat((0 until searchDisplayItemCount(2)).map { searchRowAt(it, 2) })
+            .containsExactly(
+                SearchRow.MovieRow(0),
+                SearchRow.MovieRow(1),
+            )
+            .inOrder()
+    }
+
+    @Test
+    fun `three movies add native ads at indexes one and three`() {
+        assertThat((0 until searchDisplayItemCount(3)).map { searchRowAt(it, 3) })
             .containsExactly(
                 SearchRow.MovieRow(0),
                 SearchRow.NativeAdRow(1),
                 SearchRow.MovieRow(1),
                 SearchRow.NativeAdRow(3),
+                SearchRow.MovieRow(2),
             )
             .inOrder()
     }

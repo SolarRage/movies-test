@@ -29,6 +29,6 @@ class FavoritesRepositoryImpl(
     }
 
     override suspend fun toggle(movie: Movie) {
-        if (dao.exists(movie.imdbId)) remove(movie.imdbId) else add(movie)
+        dao.toggle(movie.toEntity(addedAt = now()))
     }
 }
