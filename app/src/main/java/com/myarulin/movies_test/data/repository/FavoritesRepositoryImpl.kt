@@ -20,10 +20,6 @@ class FavoritesRepositoryImpl(
 
     override fun observeIsFavorite(imdbId: String): Flow<Boolean> = dao.observeExists(imdbId)
 
-    override suspend fun add(movie: Movie) {
-        dao.upsert(movie.toEntity(addedAt = now()))
-    }
-
     override suspend fun remove(imdbId: String) {
         dao.deleteById(imdbId)
     }

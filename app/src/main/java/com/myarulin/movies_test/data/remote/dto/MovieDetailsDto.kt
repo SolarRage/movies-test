@@ -9,6 +9,6 @@ data class MovieDetailsDto(
     @SerializedName("Type") val type: String?,
     @SerializedName("Year") val year: String?,
     @SerializedName("Plot") val plot: String?,
-    @SerializedName("Response") val response: String,
+    @SerializedName("Response") val response: String?,
     @SerializedName("Error") val error: String?,
 )

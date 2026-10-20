@@ -3,8 +3,7 @@ package com.myarulin.movies_test.data.remote
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.myarulin.movies_test.domain.model.Movie
-import java.io.IOException
-import retrofit2.HttpException
+import kotlinx.coroutines.CancellationException
 
 class OmdbMoviePagingSource(
     private val api: OmdbApi,
@@ -25,7 +24,7 @@ class OmdbMoviePagingSource(
                 throw OmdbException(response.error ?: "OMDb search failed.")
             }
 
-            val movies = response.results.orEmpty().map { it.toDomain() }
+            val movies = response.results.orEmpty().mapNotNull { it.toDomain() }
             val totalResults = response.totalResults?.toIntOrNull() ?: movies.size
             val loadedThrough = page * OMDB_PAGE_SIZE
             LoadResult.Page(
@@ -33,11 +32,9 @@ class OmdbMoviePagingSource(
                 prevKey = if (page == FIRST_PAGE) null else page - 1,
                 nextKey = if (movies.isEmpty() || loadedThrough >= totalResults) null else page + 1,
             )
-        } catch (error: IOException) {
-            LoadResult.Error(error)
-        } catch (error: HttpException) {
-            LoadResult.Error(error)
-        } catch (error: RuntimeException) {
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
             LoadResult.Error(error)
         }
     }

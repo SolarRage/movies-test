@@ -47,4 +47,18 @@ class NativeAdPlacementTest {
 
         assertThat(movieIndexes).containsExactly(0, 1, 2, 3, 4).inOrder()
     }
+
+    @Test
+    fun `failed ad can be removed without leaving an empty row`() {
+        val loadedPositions = setOf(3)
+
+        assertThat((0 until searchDisplayItemCount(3, loadedPositions)).map {
+            searchRowAt(it, 3, loadedPositions)
+        }).containsExactly(
+            SearchRow.MovieRow(0),
+            SearchRow.MovieRow(1),
+            SearchRow.MovieRow(2),
+            SearchRow.NativeAdRow(3),
+        ).inOrder()
+    }
 }

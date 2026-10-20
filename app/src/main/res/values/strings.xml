@@ -1,3 +1,22 @@
 <resources>
-    <string name="app_name">Movies-test</string>
+    <string name="app_name">Movies Test</string>
+    <string name="search_movies">Search movies</string>
+    <string name="search_hint">Title or keyword</string>
+    <string name="clear_search">Clear search</string>
+    <string name="search_start_message">Start typing to search the OMDb catalog.</string>
+    <string name="search_load_error">Unable to load movies.</string>
+    <string name="search_empty_message">No movies found for “%1$s”.</string>
+    <string name="search_next_page_error">Unable to load the next page.</string>
+    <string name="retry">Retry</string>
+    <string name="favorites_empty_message">Your favorite movies will appear here.</string>
+    <string name="no_poster">No poster</string>
+    <string name="poster_for">Poster for %1$s</string>
+    <string name="add_to_favorites">Add to favorites</string>
+    <string name="remove_from_favorites">Remove from favorites</string>
+    <string name="navigation_back">Back</string>
+    <string name="navigation_search">Search</string>
+    <string name="navigation_favorites">Favorites</string>
+    <string name="title_search">Movie search</string>
+    <string name="title_favorites">Favorites</string>
+    <string name="title_details">Movie details</string>
 </resources>

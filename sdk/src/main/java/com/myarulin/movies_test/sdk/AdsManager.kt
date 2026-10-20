@@ -14,7 +14,7 @@ interface AdsManager {
     fun initialize(application: Application)
 
     @Composable
-    fun prepareNativeAds(slotIds: Set<String>): NativeAdsLoadState
+    fun prepareNativeAds(slotIds: Set<String>): Map<String, NativeAdsLoadState>
 
     @Composable
     fun NativeAd(slotId: String, modifier: Modifier)

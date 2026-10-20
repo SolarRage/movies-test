@@ -21,9 +21,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.myarulin.movies_test.R
 import com.myarulin.movies_test.ui.components.LoadingContent
 import com.myarulin.movies_test.ui.components.MessageContent
 
@@ -40,7 +42,7 @@ fun DetailsScreen(
         is DetailsUiState.Error -> MessageContent(
             message = current.message,
             modifier = modifier,
-            actionLabel = "Retry",
+            actionLabel = stringResource(R.string.retry),
             onAction = viewModel::retry,
         )
         is DetailsUiState.Content -> {
@@ -55,7 +57,7 @@ fun DetailsScreen(
             ) {
                 AsyncImage(
                     model = movie.posterUrl,
-                    contentDescription = "Poster for ${movie.title}",
+                    contentDescription = stringResource(R.string.poster_for, movie.title),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(360.dp),
@@ -84,7 +86,9 @@ fun DetailsScreen(
                         contentDescription = null,
                     )
                     Text(
-                        text = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                        text = stringResource(
+                            if (isFavorite) R.string.remove_from_favorites else R.string.add_to_favorites,
+                        ),
                         modifier = Modifier.padding(start = 8.dp),
                     )
                 }

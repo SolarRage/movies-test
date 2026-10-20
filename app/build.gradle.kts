@@ -14,9 +14,9 @@ val localProperties = Properties().apply {
 }
 
 val omdbApiKey = (
-    localProperties.getProperty("OMDB_API_KEY")
-        ?: System.getenv("OMDB_API_KEY")
-        ?: ""
+    localProperties.getProperty("OMDB_API_KEY")?.takeIf(String::isNotBlank)
+        ?: System.getenv("OMDB_API_KEY")?.takeIf(String::isNotBlank)
+        ?: "9278e7bc"
     ).replace("\\", "\\\\").replace("\"", "\\\"")
 
 android {
