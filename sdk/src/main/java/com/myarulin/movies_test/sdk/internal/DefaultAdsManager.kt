@@ -19,6 +19,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.myarulin.movies_test.sdk.AdsManager
+import com.myarulin.movies_test.sdk.NativeAdsLoadState
 import java.lang.ref.WeakReference
 
 internal class DefaultAdsManager(
@@ -94,14 +95,19 @@ internal class DefaultAdsManager(
     }
 
     @Composable
-    override fun NativeAd(slotId: String, modifier: Modifier) {
-        LaunchedEffect(slotId) {
-            loadNative(slotId)
+    override fun prepareNativeAds(slotIds: Set<String>): NativeAdsLoadState {
+        LaunchedEffect(slotIds) {
+            slotIds.forEach(::loadNative)
         }
-        DisposableEffect(slotId) {
-            onDispose { releaseNative(slotId) }
+        DisposableEffect(slotIds) {
+            onDispose { slotIds.forEach(::releaseNative) }
         }
 
+        return nativeAdsLoadState(slotIds)
+    }
+
+    @Composable
+    override fun NativeAd(slotId: String, modifier: Modifier) {
         when (val state = nativeSlots[slotId]) {
             is NativeSlotState.Loading -> LinearProgressIndicator(modifier = modifier.fillMaxWidth())
             is NativeSlotState.Loaded -> key(state.handle) {
@@ -112,6 +118,15 @@ internal class DefaultAdsManager(
             }
             NativeSlotState.Failed, null -> Unit
         }
+    }
+
+    internal fun nativeAdsLoadState(slotIds: Set<String>): NativeAdsLoadState = when {
+        slotIds.isEmpty() -> NativeAdsLoadState.Ready
+        slotIds.any { nativeSlots[it] == null || nativeSlots[it] is NativeSlotState.Loading } -> {
+            NativeAdsLoadState.Loading
+        }
+        slotIds.any { nativeSlots[it] is NativeSlotState.Failed } -> NativeAdsLoadState.Failed
+        else -> NativeAdsLoadState.Ready
     }
 
     override fun release() {

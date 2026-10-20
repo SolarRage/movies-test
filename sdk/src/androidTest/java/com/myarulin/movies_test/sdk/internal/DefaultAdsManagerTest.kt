@@ -11,6 +11,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
+import com.myarulin.movies_test.sdk.NativeAdsLoadState
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -60,6 +61,33 @@ class DefaultAdsManagerTest {
         pendingLoad.onLoaded(handle)
 
         assertThat(provider.destroyedNativeAds).containsExactly(handle)
+    }
+
+    @Test
+    fun nativeAdsRemainLoadingUntilEverySlotFinishes() = onMainThread {
+        val slotIds = setOf("search:1", "search:3")
+        manager.loadNative("search:1")
+        manager.loadNative("search:3")
+
+        assertThat(manager.nativeAdsLoadState(slotIds)).isEqualTo(NativeAdsLoadState.Loading)
+
+        provider.nativeLoads[0].onLoaded(FakeNativeAdHandle())
+        assertThat(manager.nativeAdsLoadState(slotIds)).isEqualTo(NativeAdsLoadState.Loading)
+
+        provider.nativeLoads[1].onLoaded(FakeNativeAdHandle())
+        assertThat(manager.nativeAdsLoadState(slotIds)).isEqualTo(NativeAdsLoadState.Ready)
+    }
+
+    @Test
+    fun nativeAdFailureCompletesPreparationWithoutBlockingContent() = onMainThread {
+        val slotIds = setOf("search:1", "search:3")
+        manager.loadNative("search:1")
+        manager.loadNative("search:3")
+
+        provider.nativeLoads[0].onFailed("offline")
+        provider.nativeLoads[1].onLoaded(FakeNativeAdHandle())
+
+        assertThat(manager.nativeAdsLoadState(slotIds)).isEqualTo(NativeAdsLoadState.Failed)
     }
 
     @Test

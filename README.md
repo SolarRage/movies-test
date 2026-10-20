@@ -97,6 +97,7 @@ Run instrumentation tests on an emulator or device with:
 ## Implementation notes
 
 - Search starts 500 ms after the latest text change; blank queries are not sent.
+- Search results are revealed only after the initial movie page and required native-ad slots finish loading; an ad failure does not block the movie list.
 - Paging uses OMDb's page parameter and its fixed page size of 10.
 - Missing poster values (`N/A`) are normalized to no image.
 - Favorites use IMDb ID as the primary key.
