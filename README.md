@@ -10,8 +10,8 @@ Android home-assignment app that searches the OMDb catalog, shows paginated resu
 - Room-backed favorites sorted by newest first.
 - Search and Favorites tabs with Details on top of the navigation stack.
 - Native test ads at zero-based UI indexes 1 and 3.
-  - One movie: the first ad is placed at index 1.
-  - Two or more movies: ads are placed at indexes 1 and 3.
+  - Fewer than three movies: no ads are inserted.
+  - Three or more movies: ads are placed at indexes 1 and 3.
 - Interstitial test ad shown once per installation on the second process foreground session.
 - AdMob types and lifecycle contained inside the `:sdk` module.
 
@@ -74,12 +74,12 @@ The project uses Google's official demo identifiers only:
 
 Do not publish a production build with these IDs. Replace them with project-owned identifiers and complete the required consent/privacy flow before release.
 
-The SDK observes `ProcessLifecycleOwner`, so navigation and configuration changes do not count as app returns. Its foreground counter and one-time shown flag are stored in a dedicated SharedPreferences file. That file is excluded from cloud backup and device transfer.
+The SDK observes `ProcessLifecycleOwner`, so navigation and configuration changes do not count as app returns. The initial launch counts as foreground session 1; the first re-entry is foreground session 2 and triggers the one-time interstitial. Its foreground counter and shown flag are stored in a dedicated SharedPreferences file. That file is excluded from cloud backup and device transfer.
 
 ## Testing
 
 - JVM tests cover native-ad placement, OMDb paging/error mapping, Retrofit request/response integration, and the second-foreground interstitial policy.
-- Instrumentation tests cover Room ordering and the core movie-card Compose UI.
+- Instrumentation tests cover Room ordering and concurrent toggles, delayed ad callbacks, interstitial foreground handling, and the core movie-card Compose UI.
 - Real network calls and real ads are not used by automated tests.
 
 Compile all test APKs with:
@@ -97,6 +97,7 @@ Run instrumentation tests on an emulator or device with:
 ## Implementation notes
 
 - Search starts 500 ms after the latest text change; blank queries are not sent.
+- Search results are revealed only after the initial movie page and required native-ad slots finish loading; an ad failure does not block the movie list.
 - Paging uses OMDb's page parameter and its fixed page size of 10.
 - Missing poster values (`N/A`) are normalized to no image.
 - Favorites use IMDb ID as the primary key.

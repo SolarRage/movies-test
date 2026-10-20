@@ -28,6 +28,7 @@ internal class AdMobNativeAdHandle(val ad: NativeAd) : NativeAdHandle
 internal class AdMobProvider : AdProvider {
     private var interstitialAd: InterstitialAd? = null
     private var interstitialLoading = false
+    private var generation = 0L
 
     override fun initialize(context: Context) {
         MobileAds.initialize(context)
@@ -124,6 +125,7 @@ internal class AdMobProvider : AdProvider {
         onFailed: () -> Unit,
     ) {
         if (interstitialAd != null || interstitialLoading) return
+        val requestGeneration = generation
         interstitialLoading = true
         InterstitialAd.load(
             context,
@@ -131,12 +133,14 @@ internal class AdMobProvider : AdProvider {
             AdRequest.Builder().build(),
             object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(ad: InterstitialAd) {
+                    if (requestGeneration != generation) return
                     interstitialLoading = false
                     interstitialAd = ad
                     onLoaded()
                 }
 
                 override fun onAdFailedToLoad(error: LoadAdError) {
+                    if (requestGeneration != generation) return
                     interstitialLoading = false
                     interstitialAd = null
                     onFailed()
@@ -164,7 +168,9 @@ internal class AdMobProvider : AdProvider {
     }
 
     override fun release() {
+        generation += 1
         interstitialAd = null
+        interstitialLoading = false
     }
 
     private fun Int.dp(context: Context): Int =

@@ -2,6 +2,7 @@ package com.myarulin.movies_test.data.local
 
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
@@ -24,4 +25,9 @@ interface FavoriteMovieDao {
 
     @Query("DELETE FROM favorite_movies WHERE imdbId = :imdbId")
     suspend fun deleteById(imdbId: String)
+
+    @Transaction
+    suspend fun toggle(movie: FavoriteMovieEntity) {
+        if (exists(movie.imdbId)) deleteById(movie.imdbId) else upsert(movie)
+    }
 }

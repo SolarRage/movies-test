@@ -19,6 +19,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -27,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.myarulin.movies_test.sdk.AdsManager
+import com.myarulin.movies_test.sdk.NativeAdsLoadState
 import com.myarulin.movies_test.ui.components.LoadingContent
 import com.myarulin.movies_test.ui.components.MessageContent
 import com.myarulin.movies_test.ui.components.MovieCard
@@ -43,6 +45,19 @@ fun SearchScreen(
     val favoriteIds by viewModel.favoriteIds.collectAsStateWithLifecycle()
     val movies = viewModel.movies.collectAsLazyPagingItems()
     val focusManager = LocalFocusManager.current
+    val hasNativeAds = movies.itemCount >= MIN_MOVIES_FOR_NATIVE_ADS
+    val nativeAdSlotIds = remember(submittedQuery, hasNativeAds) {
+        if (submittedQuery.isNotBlank() && hasNativeAds) {
+            setOf(
+                "$submittedQuery:$FIRST_NATIVE_AD_INDEX",
+                "$submittedQuery:$SECOND_NATIVE_AD_INDEX",
+            )
+        } else {
+            emptySet()
+        }
+    }
+    val nativeAdsLoadState = adsManager.prepareNativeAds(nativeAdSlotIds)
+    val refreshState = movies.loadState.refresh
 
     Column(modifier = modifier.fillMaxSize()) {
         OutlinedTextField(
@@ -67,18 +82,18 @@ fun SearchScreen(
 
         when {
             submittedQuery.isBlank() -> MessageContent("Start typing to search the OMDb catalog.")
-            movies.loadState.refresh is LoadState.Loading && movies.itemCount == 0 -> LoadingContent()
-            movies.loadState.refresh is LoadState.Error && movies.itemCount == 0 -> {
-                val error = (movies.loadState.refresh as LoadState.Error).error
+            refreshState is LoadState.Loading -> LoadingContent()
+            refreshState is LoadState.Error -> {
                 MessageContent(
-                    message = error.message ?: "Unable to load movies.",
+                    message = refreshState.error.message ?: "Unable to load movies.",
                     actionLabel = "Retry",
                     onAction = movies::retry,
                 )
             }
-            movies.loadState.refresh is LoadState.NotLoading && movies.itemCount == 0 -> {
+            refreshState is LoadState.NotLoading && movies.itemCount == 0 -> {
                 MessageContent("No movies found for “$submittedQuery”.")
             }
+            nativeAdsLoadState == NativeAdsLoadState.Loading -> LoadingContent()
             else -> {
                 val displayCount = searchDisplayItemCount(movies.itemCount)
                 LazyColumn(
@@ -99,6 +114,7 @@ fun SearchScreen(
                         when (val row = searchRowAt(displayIndex, movies.itemCount)) {
                             is SearchRow.NativeAdRow -> adsManager.NativeAd(
                                 slotId = "$submittedQuery:${row.slotIndex}",
+                                modifier = Modifier,
                             )
                             is SearchRow.MovieRow -> movies[row.movieIndex]?.let { movie ->
                                 MovieCard(
@@ -129,3 +145,7 @@ fun SearchScreen(
         }
     }
 }
+
+private const val MIN_MOVIES_FOR_NATIVE_ADS = 3
+private const val FIRST_NATIVE_AD_INDEX = 1
+private const val SECOND_NATIVE_AD_INDEX = 3

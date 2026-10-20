@@ -5,6 +5,10 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -39,6 +43,19 @@ class FavoriteMovieDaoTest {
         assertThat(dao.observeAll().first().map { it.imdbId })
             .containsExactly("new", "old")
             .inOrder()
+    }
+
+    @Test
+    fun twoConcurrentTogglesRestoreOriginalState() = runTest {
+        val favorite = movie("same", addedAt = 1)
+
+        coroutineScope {
+            List(2) {
+                async(Dispatchers.IO) { dao.toggle(favorite) }
+            }.awaitAll()
+        }
+
+        assertThat(dao.exists(favorite.imdbId)).isFalse()
     }
 
     private fun movie(id: String, addedAt: Long) = FavoriteMovieEntity(
